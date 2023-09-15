@@ -1,0 +1,33 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/shiraiwa/myg4work/muography3/MT-build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_441b9/fast"
+/usr/bin/make -f CMakeFiles/cmTC_441b9.dir/build.make CMakeFiles/cmTC_441b9.dir/build
+make[1]: ディレクトリ '/home/shiraiwa/myg4work/muography3/MT-build/CMakeFiles/CMakeTmp' に入ります
+Building C object CMakeFiles/cmTC_441b9.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_441b9.dir/CheckSymbolExists.c.o   -c /home/shiraiwa/myg4work/muography3/MT-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_441b9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_441b9.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_441b9.dir/CheckSymbolExists.c.o  -o cmTC_441b9 
+/usr/bin/ld: CMakeFiles/cmTC_441b9.dir/CheckSymbolExists.c.o: in function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_441b9.dir/build.make:87: cmTC_441b9] エラー 1
+make[1]: ディレクトリ '/home/shiraiwa/myg4work/muography3/MT-build/CMakeFiles/CMakeTmp' から出ます
+make: *** [Makefile:121: cmTC_441b9/fast] エラー 2
+
+File /home/shiraiwa/myg4work/muography3/MT-build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
