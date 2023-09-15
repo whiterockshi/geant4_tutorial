@@ -48,7 +48,8 @@ void MTana::Loop()
    Long64_t nentries = fChain->GetEntriesFast();
 
    TFile tf("MTana.root","RECREATE"); // a file where results are saved.
-   TH2D* h1 = new TH2D("hitmap1", "hitmap in the front module", 32, 0., 32., 32, 0., 32.); // a hit map
+   TH2D* h1 = new TH2D("hitmap1", "hitmap in the front module", 32, 0., 32., 32, 0., 32.); // a hit map   
+   TH2D* h2 = new TH2D("hitmap2", "hitmap in the rear module", 32, 0., 32., 32, 0., 32.); // a hit map
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -66,7 +67,38 @@ void MTana::Loop()
             }
          }
       }
+      for (int i = 64; i < 96; ++i) { // loop over scintillators in the 3rd layer
+         if (ScEdep->at(i) > 0.) { // Do Scintillators have energy deposit?
+            for (int j = 96; j < 128; ++j) { // loop over scintillators in the 4th layer
+               if (ScEdep->at(j) > 0.) { // Do Scintillators have energy deposit?
+                  h2->Fill(i-64, j-64-32); // fill events.
+               }
+            }
+         }
+      }
+
    }
+   //*****************************9/15*******************************//
+
+/*   Long64_t nbytes2 = 0, nb2 = 0;
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+      Long64_t ientry = LoadTree(jentry);
+      if (ientry < 0) break;
+      nb2 = fChain->GetEntry(jentry);   nbytes2 += nb2;
+      // if (Cut(ientry) < 0) continue;
+      // to take coincidence betwee the 3rd and 4th layers
+      for (int i = 64; i < 95; ++i) { // loop over scintillators in the 3rd layer
+         if (ScEdep->at(i) > 0.) { // Do Scintillators have energy deposit?
+            for (int j = 96; j < 128; ++j) { // loop over scintillators in the 4th layer
+               if (ScEdep->at(j) > 0.) { // Do Scintillators have energy deposit?
+                  h1->Fill(i-64, j-64-32); // fill events.
+               }
+            }
+         }
+      }
+   }
+   */
+   //*****************************9/15*******************************//   
    tf.Write(); // to write results(histograms) to the file
    tf.Close(); // to close the file
 }
