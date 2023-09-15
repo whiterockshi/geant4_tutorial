@@ -9,6 +9,8 @@
 
 int main() {
    TChain *ch = new TChain("MT");
+   //newによってメモリを確保してTChain class の変数chを宣言する。
+   //
    ch->Add("MT.root");
    MTana t(ch);
    t.Loop();
