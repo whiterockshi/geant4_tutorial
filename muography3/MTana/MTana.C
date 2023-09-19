@@ -7,6 +7,9 @@
 #include <TFile.h>
 #include <TH2D.h>
 
+#include <vector> //Variable length array
+#include <iostream>
+
 int main() {
    TChain *ch = new TChain("MT");
    //newによってメモリを確保してTChain class の変数chを宣言する。
@@ -50,6 +53,7 @@ void MTana::Loop()
    TFile tf("MTana.root","RECREATE"); // a file where results are saved.
    TH2D* h1 = new TH2D("hitmap1", "hitmap in the front module", 32, 0., 32., 32, 0., 32.); // a hit map   
    TH2D* h2 = new TH2D("hitmap2", "hitmap in the rear module", 32, 0., 32., 32, 0., 32.); // a hit map
+   TH2D* h3 = new TH2D("hitmap3", "hitmap of the difference of layer position", 62, -31., 31., 62, -31., 31.); //hit map of exercise 3
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -58,11 +62,21 @@ void MTana::Loop()
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
       // to take coincidence betwee the 1st and 2nd layers
+
+      vector<int> A1x;
+      vector<int> A1y;
+      vector<int> A2x;
+      vector<int> A2y;
+      vector<int> Ax;
+      vector<int> Ay;
+
       for (int i = 0; i < 32; ++i) { // loop over scintillators in the 1st layer
          if (ScEdep->at(i) > 0.) { // Do Scintillators have energy deposit?
             for (int j = 32; j < 64; ++j) { // loop over scintillators in the 2nd layer
                if (ScEdep->at(j) > 0.) { // Do Scintillators have energy deposit?
                   h1->Fill(i, j-32); // fill events.
+		              A1x.push_back(i);
+		              A1y.push_back(j-32);
                }
             }
          }
@@ -72,9 +86,17 @@ void MTana::Loop()
             for (int j = 96; j < 128; ++j) { // loop over scintillators in the 4th layer
                if (ScEdep->at(j) > 0.) { // Do Scintillators have energy deposit?
                   h2->Fill(i-64, j-64-32); // fill events.
+                  A2x.push_back(i-64);
+                  A2y.push_back(j-64-32);
                }
             }
          }
+      }
+
+      for (int i=0; i < A1x.size(); ++i) {
+        for (int j=0; j < A2x.size(); ++j){
+          h3->Fill(A1x[i]-A2x[j],A1y[i]-A2y[j]);
+        }
       }
 
    }
@@ -98,7 +120,7 @@ void MTana::Loop()
       }
    }
    */
-   //*****************************9/15*******************************//   
+   //*****************************9/15*******************************//  
    tf.Write(); // to write results(histograms) to the file
    tf.Close(); // to close the file
 }
