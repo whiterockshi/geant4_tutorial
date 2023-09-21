@@ -10,6 +10,7 @@
 #include <vector> //Variable length array
 #include <iostream>
 #include <bits/stdc++.h>
+#include <math.h>
 
 int main() {
    TChain *ch = new TChain("MT");
@@ -55,8 +56,13 @@ void MTana::Loop()
    TH2D* h1 = new TH2D("hitmap1", "hitmap in the front module", 32, 0., 32., 32, 0., 32.); // a hit map   
    TH2D* h2 = new TH2D("hitmap2", "hitmap in the rear module", 32, 0., 32., 32, 0., 32.); // a hit map
    TH2D* h3 = new TH2D("hitmap3", "hitmap of the difference of layer position", 62, -31., 31., 62, -31., 31.); //hit map of exercise 2
-   TH1F* h4 = new TH1F("hist1", "hitmap of the zenith angle", 100, -0.1, 0.1);//hit map od exercise3
-   TH1F* h5 = new TH1F("hist2", "hitmap of the azimuth", 360, 0., 360.); //hit map of exercise3
+   TH1F* h4 = new TH1F("hist1", "hitmap of the zenith angle", 100, -atan(320*pow(2,0.5)/640), atan(320*pow(2,0.5)/640));//hit map od exercise3
+   TH1F* h5 = new TH1F("hist2", "hitmap of the azimuth", 100, -M_PI, M_PI); //hit map of exercise3
+
+   TH1F* h100 = new TH1F("dx", "hist of dx", 62, -31., 31.); //Debug
+   TH1F* h101 = new TH1F("dy", "hist of dy", 62, -31., 31.); //Debug
+   TH1F* h102 = new TH1F("chF", "How many channel activate", 10000, 0., 10000.); //Debug
+   TH1F* h103 = new TH1F("chR", "How many channel activate", 10000, 0., 10000.); //Debug
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
@@ -72,17 +78,41 @@ void MTana::Loop()
       vector<int> Ax;
       vector<int> Ay;
 
+      vector<int> B1x;//To output the activate channel in x axis.
+      vector<int> B1y;//To output the activate channel in y axis.
+
       for (int i = 0; i < 32; ++i) { // loop over scintillators in the 1st layer
-         if (ScEdep->at(i) > 0.) { // Do Scintillators have energy deposit?
+         if (ScEdep->at(i) > 0.) {// Do Scintillators have energy deposit?
+         B1x.push_back(i);
             for (int j = 32; j < 64; ++j) { // loop over scintillators in the 2nd layer
                if (ScEdep->at(j) > 0.) { // Do Scintillators have energy deposit?
                   h1->Fill(i, j-32); // fill events.
 		              A1x.push_back(i);
 		              A1y.push_back(j-32);
+
+                  B1y.push_back(j-32);
+
                }
             }
          }
       }
+
+      //std::cout << "event" << jentry << std::endl;
+      for (int i = 0; i < B1x.size(); ++i){
+        //std::cout << "  FrontLayer" << B1x[i] << std::endl;
+      }
+
+      for (int i = 0; i < B1y.size(); ++i){
+        for (int j = 0; j < B1x.size()/2; ++j){
+          B1y.pop_back();
+        }
+        //std::cout << "  RearLayer " << B1y[i] << std::endl;
+      }
+      //std::cout << B1x.size() << std::endl;
+      h102->Fill(B1x.size());
+      h103->Fill(B1y.size());
+      B1x = {};
+      B1y = {};
       for (int i = 64; i < 96; ++i) { // loop over scintillators in the 3rd layer
          if (ScEdep->at(i) > 0.) { // Do Scintillators have energy deposit?
             for (int j = 96; j < 128; ++j) { // loop over scintillators in the 4th layer
@@ -100,12 +130,22 @@ void MTana::Loop()
           int AA = (A1x[i]-A2x[j]);
           int BB = (A1y[i]-A2y[j]);
           h3->Fill(AA,BB);
+      	  h100->Fill(AA);
+	  h101->Fill(BB);
           int A = 10*AA;//(mm)
           int B = 10*BB;//(mm)
           int C = ScPosZ->at(64) - ScPosZ->at(0);
-          int theta = 180 / M_PI * (atan(pow(pow(A,2)+pow(B,2),0.5)) / C);
-          int fai = 0;
-          if (A > 0 && B > 0) {
+	  double r = sqrt(pow(A,2)+pow(B,2));
+          double theta = atan2(r , C);
+	  std::cout << "Event" << jentry << std::endl;
+	  std::cout << "A=" << A << " "<<  "B=" << B << std::endl;
+	  std::cout << "R2=   " << pow(A,2)+pow(B,2) << std::endl;
+	  std::cout << "R=    " << sqrt(pow(A,2)+pow(B,2)) << "=" << r <<std::endl;
+	  std::cout << "C=    " << C << std::endl;
+	  std::cout << "theta=" << theta << std::endl;
+          double fai = atan2(B,A);
+	  std::cout << "  " << fai << std::endl;
+/*          if (A > 0 && B > 0) {
             fai = 180 / M_PI * atan(B/A);
           }
           if (A < 0 && B < 0) {
@@ -120,7 +160,7 @@ void MTana::Loop()
           else{
             fai = 100;//????????????????????
             theta = 0;
-          }
+          }*/
           h4->Fill(theta);
           h5->Fill(fai);
         }
